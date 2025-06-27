@@ -1,4 +1,14 @@
 require("dotenv").config({ path: ".env.local" });
+const mongoose = require("mongoose");
+
+const mongodbURL = process.env.DATABASE.replace(
+  "<PASSWORD>",
+  process.env.DATABASE_PASSWORD
+);
+
+mongoose.connect(process.env.DATABASE_LOCAL, { dbName: "Forms" }).then((_) => {
+  console.log("Succesfully connected to a Database.");
+});
 
 const app = require("./app");
 

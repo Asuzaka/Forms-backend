@@ -6,7 +6,7 @@ const mongodbURL = process.env.DATABASE.replace(
   process.env.DATABASE_PASSWORD
 );
 
-mongoose.connect(process.env.DATABASE_LOCAL, { dbName: "Forms" }).then((_) => {
+mongoose.connect(mongodbURL, { dbName: "Forms" }).then((_) => {
   console.log("Succesfully connected to a Database.");
 });
 

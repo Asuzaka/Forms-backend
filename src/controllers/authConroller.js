@@ -4,7 +4,6 @@ const catchAsync = require("./../services/catchAsync");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const sendEmail = require("./../services/nodemailer");
-const validator = require("validator");
 const { promisify } = require("util");
 
 exports.authenticated = (req, res, next) => {

@@ -141,7 +141,7 @@ exports.githubLogin = catchAsync(async (req, res, next) => {
       client_id: process.env.GITHUB_CLIENT_ID,
       client_secret: process.env.GITHUB_CLIENT_SECRET,
       code,
-      redirect_uri: "http://localhost:5173/github/callback",
+      redirect_uri: `${process.env.FRONTEND_ADDRESS}/github/callback`,
     },
     {
       headers: { Accept: "application/json" },

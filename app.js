@@ -12,7 +12,7 @@ const errorController = require("./src/controllers/errorController");
 const ResponseError = require("./src/services/ResponseError");
 
 const corsOption = {
-  origin: process.env.FRONTEND_URL,
+  origin: process.env.FROTEND_ADDRESS,
   credentials: true,
 };
 // Limit requests From IP

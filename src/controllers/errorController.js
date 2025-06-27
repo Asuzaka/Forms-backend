@@ -25,7 +25,6 @@ module.exports = (err, req, res, next) => {
     error = handleJWTexpired();
   }
   // Warn the developer by loggin the unexpected error to the console
-  console.log(error.isOperational);
   if (!error.isOperational) {
     console.log("Unexpected Error:", error);
   }

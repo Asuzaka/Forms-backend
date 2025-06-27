@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const sendEmail = require("../services/Nodemailer");
 const { promisify } = require("util");
+const axios = require("axios");
 
 exports.authenticated = (req, res, next) => {
   if (!req.user) {
@@ -94,6 +95,95 @@ exports.signup = catchAsync(async (req, res, next) => {
       )
     );
   }
+});
+
+exports.googleLogin = catchAsync(async (req, res, next) => {
+  const { token: googleToken } = req.body;
+
+  if (!googleToken) return next(new ResponseError("No token provided", 400));
+
+  // Verify token and get user info from Google
+  const response = await axios.get(
+    `https://oauth2.googleapis.com/tokeninfo?id_token=${googleToken}`
+  );
+
+  const { email, name, sub: googleId, picture } = response.data;
+
+  if (!email || !googleId) return next(new ResponseError("Invalid token", 400));
+
+  // Find or create user
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    user = await User.create({
+      name,
+      email,
+      photo: picture,
+      provider: "google",
+      providerId: googleId,
+      isVerified: true,
+    });
+  }
+
+  // Send JWT and cookie
+  createTokenAndSend(user, res, { statusCode: 200 });
+});
+
+exports.githubLogin = catchAsync(async (req, res, next) => {
+  const { code } = req.body;
+
+  if (!code) return next(new ResponseError("No code provided", 400));
+
+  // Step 1: Exchange code for access token
+  const { data: tokenData } = await axios.post(
+    "https://github.com/login/oauth/access_token",
+    {
+      client_id: process.env.GITHUB_CLIENT_ID,
+      client_secret: process.env.GITHUB_CLIENT_SECRET,
+      code,
+      redirect_uri: "http://localhost:5173/github/callback",
+    },
+    {
+      headers: { Accept: "application/json" },
+    }
+  );
+
+  const accessToken = tokenData.access_token;
+  if (!accessToken) return next(new ResponseError("Failed to get token", 400));
+
+  // Step 2: Fetch user profile and email
+  const { data: profile } = await axios.get("https://api.github.com/user", {
+    headers: { Authorization: `token ${accessToken}` },
+  });
+
+  const { data: emails } = await axios.get(
+    "https://api.github.com/user/emails",
+    {
+      headers: { Authorization: `token ${accessToken}` },
+    }
+  );
+
+  const primaryEmail =
+    emails.find((e) => e.primary && e.verified)?.email || emails[0]?.email;
+
+  if (!primaryEmail) return next(new ResponseError("No verified email", 400));
+
+  // Step 3: Find or create user
+  let user = await User.findOne({ email: primaryEmail });
+
+  if (!user) {
+    user = await User.create({
+      name: profile.name || profile.login,
+      email: primaryEmail,
+      photo: profile.avatar_url,
+      provider: "github",
+      providerId: profile.id,
+      isVerified: true,
+    });
+  }
+
+  // Send JWT and cookie
+  createTokenAndSend(user, res, { statusCode: 200 });
 });
 
 exports.verify = catchAsync(async (req, res, next) => {

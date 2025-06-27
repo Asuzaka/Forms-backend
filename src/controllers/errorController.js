@@ -1,4 +1,4 @@
-const ResponseError = require("./../services/ResponseError");
+const ResponseError = require("../services/ResponseError");
 
 module.exports = (err, req, res, next) => {
   // Assign error status if it doesn't exist

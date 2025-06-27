@@ -1,9 +1,9 @@
 const ResponseError = require("../services/ResponseError");
-const User = require("./../models/userModel");
-const catchAsync = require("./../services/catchAsync");
+const User = require("../models/userModel");
+const catchAsync = require("../services/CatchAsync");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const sendEmail = require("./../services/nodemailer");
+const sendEmail = require("../services/nodemailer");
 const { promisify } = require("util");
 
 exports.authenticated = (req, res, next) => {

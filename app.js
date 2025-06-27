@@ -1,21 +1,20 @@
 const express = require("express");
 const path = require("path");
 const rateLimit = require("express-rate-limit");
-const sanitize = require("express-mongo-sanitize");
+const sanitize = require("./src/middleware/sanitize");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const bodyParser = require("body-parser");
 const app = express();
+
+const auth = require("./src/routes/authRoute");
+const errorController = require("./src/controllers/errorController");
+const ResponseError = require("./src/services/ResponseError");
 
 const corsOption = {
   origin: process.env.FRONTEND_URL,
   credentials: true,
 };
-
-// set Security HTTP HEADERS
-app.use(helmet());
-
 // Limit requests From IP
 const limier = rateLimit({
   max: 500,
@@ -23,17 +22,21 @@ const limier = rateLimit({
   message: "Too many requests from this IP, please try again in an hour!",
 });
 
-app.use("/api", limier);
-
-// Data sanitization against NoSQL injection
-app.use(sanitize());
+// set Security HTTP HEADERS
+app.use(helmet());
 
 // Cookie Parser
 app.use(cookieParser());
-// CORS
-app.use(cors(corsOption));
 // Body Parser
 app.use(express.json({ limit: "20kb" }));
+
+// Data sanitization against NoSQL injection
+app.use(sanitize);
+
+// CORS
+app.use(cors(corsOption));
+
+app.use("/api", limier);
 
 // Middlware
 app.use((req, res, next) => {
@@ -50,10 +53,19 @@ app.use(
 );
 
 // Basic route
+
+app.use("/v1/auth", auth);
+
 app.get("/api", (req, res) => {
   res.json({ message: "Hello from Express!" });
 });
 
-console.log(process.env.FROTEND_ADDRESS);
+// 404 errors
+app.use("*splat", (req, res, next) => {
+  next(new ResponseError(`Can't reach ${req.originalUrl} on this server`, 404));
+});
+
+// Central error handling
+app.use(errorController);
 
 module.exports = app;

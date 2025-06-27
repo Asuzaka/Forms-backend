@@ -13,7 +13,7 @@ exports.authenticated = (req, res, next) => {
   res.status(200).json({ status: "success", data: req.user });
 };
 
-exports.logout = (req, res, next) => {
+exports.signout = (req, res, next) => {
   res.cookie("jwt", "logged out", { expires: new Date(0), httpOnly: true });
   res.status(200).json({ status: "success" });
 };
@@ -116,11 +116,11 @@ exports.verify = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.login = catchAsync(async (req, res, next) => {
+exports.signin = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
   // Check if input is email or username
-  const user = await User.findOne({ email: uni }).select("+password");
+  const user = await User.findOne({ email: email }).select("+password");
 
   // Check passwords
   if (!user || !(await user.confirmPassword(password, user.password))) {

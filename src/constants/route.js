@@ -26,6 +26,9 @@ const routes = {
       verify: "/verify/:token",
       forget: "/forgetPassword",
       reset: "/resetPassword/:token",
+      google: "/google",
+      github: "/github",
+      authenticated: "/authenticated",
     },
     users: {
       Root: "/users",

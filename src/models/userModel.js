@@ -57,7 +57,11 @@ const UserSchema = new mongoose.Schema({
   providerId: {
     type: String,
   },
-
+  status: {
+    type: String,
+    enum: ["blocked", "active"],
+    default: "active",
+  },
   role: {
     type: String,
     enum: ["admin", "user"],

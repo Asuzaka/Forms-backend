@@ -1,15 +1,6 @@
 const mongoose = require("mongoose");
 
-const checkboxOptionSchema = new mongoose.Schema(
-  {
-    id: { type: String, required: true },
-    text: { type: String, required: true },
-    selected: { type: Boolean, default: false },
-  },
-  { _id: false }
-);
-
-const questionBase = {
+const baseQuestion = {
   id: { type: String, required: true },
   type: {
     type: String,
@@ -22,84 +13,45 @@ const questionBase = {
   description: String,
 };
 
-const questionSchemas = [
-  new mongoose.Schema(
-    {
-      ...questionBase,
-      type: { type: String, enum: ["singleLine"], required: true },
-      answer: String,
-      placeholder: String,
-      maxLength: Number,
-    },
-    { _id: false }
-  ),
-
-  new mongoose.Schema(
-    {
-      ...questionBase,
-      type: { type: String, enum: ["multiLine"], required: true },
-      answer: String,
-      lines: Number,
-      placeholder: String,
-    },
-    { _id: false }
-  ),
-
-  new mongoose.Schema(
-    {
-      ...questionBase,
-      type: { type: String, enum: ["numberInput"], required: true },
-      answer: Number,
-    },
-    { _id: false }
-  ),
-
-  new mongoose.Schema(
-    {
-      ...questionBase,
-      type: { type: String, enum: ["checkbox"], required: true },
-      options: [checkboxOptionSchema],
-      multiple: Boolean,
-    },
-    { _id: false }
-  ),
-];
-
-const formTemplateSchema = new mongoose.Schema(
+const checkboxOptionSchema = new mongoose.Schema(
   {
-    title: {
-      type: String,
-      required: [true, "Template must have a title"],
-    },
+    id: { type: String, required: true },
+    text: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+const questionUnionSchema = new mongoose.Schema(
+  {
+    ...baseQuestion,
+    placeholder: String,
+    multiple: Boolean,
+    options: [checkboxOptionSchema],
+  },
+  { _id: false }
+);
+
+const templateSchema = new mongoose.Schema(
+  {
+    title: String,
     description: String,
     image: String,
-    topic: {
-      type: String,
-      enum: ["education", "quiz", "other"],
-      default: "other",
-      required: [true, "Template must have a topic"],
-    },
+    topic: String,
+    tags: [String],
     creator: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "Template must have a creator"],
+      required: true,
     },
-    questions: {
-      type: [mongoose.Schema.Types.Mixed],
-      default: [],
-    },
-    isPublic: {
-      type: Boolean,
-      default: false,
-    },
-    thumbail: {
+    access: {
       type: String,
-      default: "",
+      enum: ["public", "restricted"],
+      default: "public",
     },
+    allowedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    questions: [questionUnionSchema],
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-module.exports = mongoose.model("Template", formTemplateSchema);
+module.exports = mongoose.model("Template", templateSchema);

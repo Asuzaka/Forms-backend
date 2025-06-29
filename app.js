@@ -8,6 +8,8 @@ const cors = require("cors");
 const app = express();
 
 const auth = require("./src/routes/authRoute");
+const forms = require("./src/routes/formRoute");
+const template = require("./src/routes/templateRoute");
 const errorController = require("./src/controllers/errorController");
 const ResponseError = require("./src/services/ResponseError");
 
@@ -15,6 +17,7 @@ const corsOption = {
   origin: process.env.FROTEND_ADDRESS,
   credentials: true,
 };
+
 // Limit requests From IP
 const limier = rateLimit({
   max: 500,
@@ -55,6 +58,8 @@ app.use(
 // Basic route
 
 app.use("/v1/auth", auth);
+app.use("/v1/templates", template);
+app.use("/v1/forms", forms);
 
 app.get("/api", (req, res) => {
   res.json({ message: "Hello from Express!" });

@@ -2,7 +2,9 @@ const mongoose = require("mongoose");
 
 const answerSchema = new mongoose.Schema(
   {
-    questionId: { type: String, required: true },
+    index: Number,
+    text: String,
+    id: { type: String, required: true },
     answer: mongoose.Schema.Types.Mixed,
   },
   { _id: false }
@@ -30,5 +32,7 @@ const formSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+formSchema.index({ title: 1 });
 
 module.exports = mongoose.model("Form", formSchema);

@@ -3,10 +3,12 @@ const Template = require("../models/templateModel");
 const ResponseError = require("../services/ResponseError");
 const catchAsync = require("../services/CatchAsync");
 
-// Submit form
 exports.submitForm = catchAsync(async (req, res, next) => {
-  const { templateId, answers } = req.body;
-  const template = await Template.findById(templateId);
+  const { id } = req.params;
+  console.log(req.user.id);
+  if (!id) return next(new ResponseError("No id was provided", 400));
+  const { answers } = req.body;
+  const template = await Template.findById(id);
   if (!template) return next(new ResponseError("Template not found", 404));
 
   const isPublic = template.access === "public";
@@ -20,8 +22,9 @@ exports.submitForm = catchAsync(async (req, res, next) => {
   }
 
   const newForm = await Form.create({
-    template: templateId,
-    creator: req.user.id,
+    template: id,
+    creator: template.creator,
+    user: req.user.id,
     answers,
     title: `Submission for ${template.title}`,
   });
@@ -29,7 +32,6 @@ exports.submitForm = catchAsync(async (req, res, next) => {
   res.status(201).json({ status: "success", data: newForm });
 });
 
-// Get all submissions for a template
 exports.getTemplateForms = catchAsync(async (req, res, next) => {
   const template = await Template.findById(req.params.templateId);
   if (!template) return next(new ResponseError("Template not found", 404));
@@ -46,7 +48,6 @@ exports.getTemplateForms = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: "success", data: forms });
 });
 
-// Get one form (view)
 exports.getForm = catchAsync(async (req, res, next) => {
   const form = await Form.findById(req.params.id).populate(
     "template creator",
@@ -57,18 +58,22 @@ exports.getForm = catchAsync(async (req, res, next) => {
   const template = form.template;
   const isOwner = template.creator.toString() === req.user.id;
   const isSubmitter = form.creator._id.toString() === req.user.id;
-  const isPublic = template.access === "public";
-  const isAllowed = template.allowedUsers?.includes(req.user.id);
 
-  if (
-    !isOwner &&
-    !isSubmitter &&
-    !isPublic &&
-    !isAllowed &&
-    req.user.role !== "admin"
-  ) {
+  if (!isOwner && !isSubmitter && req.user.role !== "admin") {
     return next(new ResponseError("Access denied", 403));
   }
 
   res.status(200).json({ status: "success", data: form });
+});
+
+exports.TemplateForForm = catchAsync(async (req, res, next) => {
+  const template = await Template.findById(req.params.id);
+
+  if (!template) return next(new ResponseError("Form not found", 404));
+
+  if (!template.publish) {
+    return next(new ResponseError("Form not found", 404));
+  }
+
+  res.status(200).json({ status: "success", data: template });
 });

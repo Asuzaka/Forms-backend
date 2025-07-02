@@ -1,5 +1,7 @@
 require("dotenv").config({ path: ".env.local" });
+const http = require("http");
 const mongoose = require("mongoose");
+const setupSocket = require("./src/socket");
 
 const mongodbURL = process.env.DATABASE.replace(
   "<PASSWORD>",
@@ -11,8 +13,15 @@ mongoose.connect(mongodbURL, { dbName: "Forms" }).then((_) => {
 });
 
 const app = require("./app");
+const server = http.createServer(app);
+const io = setupSocket(server);
+
+console.log("Socket.IO instance created:", !!io);
 
 // Start server
-app.listen(process.env.PORT, () => {
-  console.log(`Server running on http://localhost:${process.env.PORT}`);
+server.listen(process.env.PORT, () => {
+  console.log(`Server running on http://localhost:${process.env.PORT} `);
+  console.log(
+    `WebSocket endpoint: ws://localhost:${process.env.PORT}/socket.io/`
+  );
 });

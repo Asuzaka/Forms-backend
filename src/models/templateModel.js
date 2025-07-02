@@ -48,10 +48,24 @@ const templateSchema = new mongoose.Schema(
       enum: ["public", "restricted"],
       default: "public",
     },
+    publish: {
+      type: Boolean,
+      default: false,
+    },
     allowedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    likes: { type: Number, default: 0 },
+    likedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     questions: [questionUnionSchema],
   },
   { timestamps: true }
 );
+
+templateSchema.index({ title: 1 });
+templateSchema.index({ tags: 1 });
 
 module.exports = mongoose.model("Template", templateSchema);

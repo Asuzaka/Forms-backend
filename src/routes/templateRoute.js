@@ -12,6 +12,13 @@ router
   .get(templateController.getUserTemplates)
   .post(templateController.createTemplate);
 router
+  .route("/templates")
+  .post(
+    authController.accesTo("admin"),
+    templateController.deleteMultipleTemplates
+  )
+  .get(authController.accesTo("admin"), templateController.getAllTemplates);
+router
   .route("/:id")
   .get(templateController.getTemplate)
   .patch(templateController.updateTemplate)

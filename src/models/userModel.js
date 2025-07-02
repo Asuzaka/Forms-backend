@@ -106,6 +106,8 @@ UserSchema.index(
   } // Only applies to unverified users
 );
 
+UserSchema.index({ name: 1 });
+
 // To create User Token
 UserSchema.methods.createUserToken = function () {
   const userToken = crypto.randomBytes(26).toString("hex");

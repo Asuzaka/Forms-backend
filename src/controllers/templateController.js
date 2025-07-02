@@ -3,12 +3,10 @@ const ResponseError = require("../services/ResponseError");
 const catchAsync = require("../services/CatchAsync");
 const apiFeatures = require("../services/ApiFeatures");
 
-// Only creator or admin
 const isAuthorized = (reqUser, docCreator) => {
   return reqUser.role === "admin" || docCreator.toString() === reqUser.id;
 };
 
-// Create
 exports.createTemplate = catchAsync(async (req, res, next) => {
   const template = await Template.create({
     ...req.body,
@@ -17,7 +15,27 @@ exports.createTemplate = catchAsync(async (req, res, next) => {
   res.status(201).json({ status: "success", data: template });
 });
 
-// Get all templates of logged-in user
+exports.getAllTemplates = catchAsync(async (req, res, next) => {
+  console.log(req.query);
+  const query = Template.find();
+
+  const features = new apiFeatures(query, req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .pagination();
+
+  const templates = await features.query;
+
+  res.status(200).json({
+    status: "success",
+    results: templates.length,
+    data: {
+      templates,
+    },
+  });
+});
+
 exports.getUserTemplates = catchAsync(async (req, res) => {
   const query = Template.find({ creator: req.user.id });
 
@@ -33,7 +51,6 @@ exports.getUserTemplates = catchAsync(async (req, res) => {
     .json({ status: "success", results: templates.length, data: templates });
 });
 
-// Get one template
 exports.getTemplate = catchAsync(async (req, res, next) => {
   const template = await Template.findById(req.params.id);
   if (!template) return next(new ResponseError("Template not found", 404));
@@ -48,20 +65,27 @@ exports.getTemplate = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: "success", data: template });
 });
 
-// Patch template
 exports.updateTemplate = catchAsync(async (req, res, next) => {
   const template = await Template.findById(req.params.id);
-  if (!template) return next(new ResponseError("Template not found", 404));
+
+  if (!template) return next(new customError("Template not found", 404));
+
   if (!isAuthorized(req.user, template.creator)) {
-    return next(new ResponseError("You cannot update this template", 403));
+    return next(new customError("You cannot update this template", 403));
   }
 
-  Object.assign(template, req.body);
-  await template.save();
-  res.status(200).json({ status: "success", data: template });
+  const updatedTemplate = await Template.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  res.status(200).json({ status: "success", data: updatedTemplate });
 });
 
-// Delete
 exports.deleteTemplate = catchAsync(async (req, res, next) => {
   const template = await Template.findById(req.params.id);
   if (!template) return next(new ResponseError("Template not found", 404));
@@ -71,4 +95,21 @@ exports.deleteTemplate = catchAsync(async (req, res, next) => {
 
   await template.deleteOne();
   res.status(204).json({ status: "success", data: null });
+});
+
+exports.deleteMultipleTemplates = catchAsync(async (req, res, next) => {
+  const { ids } = req.body;
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return next(new ResponseError("No template IDs provided", 400));
+  }
+
+  const templates = await Template.find({ _id: { $in: ids } });
+
+  await Template.deleteMany({ _id: { $in: ids } });
+
+  res.status(200).json({
+    status: "success",
+    message: `Deleted ${templates.length} templates`,
+  });
 });

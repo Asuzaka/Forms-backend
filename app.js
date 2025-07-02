@@ -7,9 +7,13 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const app = express();
 
+const upload = require("./src/routes/uploadRoute");
 const auth = require("./src/routes/authRoute");
 const forms = require("./src/routes/formRoute");
 const template = require("./src/routes/templateRoute");
+const users = require("./src/routes/userRoute");
+const search = require("./src/routes/searchRoute");
+const commentRoutes = require("./src/routes/commentRoute");
 const errorController = require("./src/controllers/errorController");
 const ResponseError = require("./src/services/ResponseError");
 
@@ -55,11 +59,13 @@ app.use(
   express.static(path.join(__dirname, "public"))
 );
 
-// Basic route
-
+app.use("/v1/upload", upload);
 app.use("/v1/auth", auth);
 app.use("/v1/templates", template);
 app.use("/v1/forms", forms);
+app.use("/v1/users", users);
+app.use("/v1/search", search);
+app.use("/v1/comments", commentRoutes);
 
 app.get("/api", (req, res) => {
   res.json({ message: "Hello from Express!" });

@@ -55,9 +55,19 @@ exports.getTemplate = catchAsync(async (req, res, next) => {
   if (!template) return next(new ResponseError("Template not found", 404));
 
   const isPublic = template.access === "public";
+
+  if (isPublic) {
+    return res.status(200).json({ status: "success", data: template });
+  }
+
+  if (!req.user) {
+    return next(new ResponseError("Template not found", 404));
+  }
+
+  const isOwner = isAuthorized(req.user, template.creator);
   const isAllowed = template.allowedUsers?.includes(req.user.id);
 
-  if (!isPublic && !isAuthorized(req.user, template.creator) && !isAllowed) {
+  if (!isOwner && !isAllowed) {
     return next(new ResponseError("Access denied", 403));
   }
 

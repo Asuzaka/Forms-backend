@@ -9,6 +9,12 @@ router.get("/latest", templateController.getLatestTemplates);
 router.get("/popular/likes", templateController.getPopularByLikes);
 router.get("/tags", templateController.getTagStatistics);
 
+router
+  .route("/:id")
+  .get(templateController.getTemplate)
+  .patch(authController.protect, templateController.updateTemplate)
+  .delete(authController.protect, templateController.deleteTemplate);
+
 router.use(authController.protect);
 
 router
@@ -22,10 +28,5 @@ router
     templateController.deleteMultipleTemplates
   )
   .get(authController.accesTo("admin"), templateController.getAllTemplates);
-router
-  .route("/:id")
-  .get(templateController.getTemplate)
-  .patch(templateController.updateTemplate)
-  .delete(templateController.deleteTemplate);
 
 module.exports = router;

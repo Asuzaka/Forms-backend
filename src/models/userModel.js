@@ -19,10 +19,10 @@ const UserSchema = new mongoose.Schema({
   },
   photo: {
     type: String,
-    default: "default.png",
+    default:
+      "https://hxfqjxaynywivthkixwq.supabase.co/storage/v1/object/public/images//default.png",
   },
 
-  // For local login
   password: {
     type: String,
     trim: true,

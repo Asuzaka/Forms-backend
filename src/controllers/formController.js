@@ -2,10 +2,10 @@ const Form = require("../models/formModel");
 const Template = require("../models/templateModel");
 const ResponseError = require("../services/ResponseError");
 const catchAsync = require("../services/CatchAsync");
+const mongoose = require("mongoose");
 
 exports.submitForm = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return next(new ResponseError("Template not found", 404));
   }
@@ -67,8 +67,8 @@ exports.getForm = catchAsync(async (req, res, next) => {
   }
 
   const form = await Form.findById(req.params.id).populate(
-    "template creator",
-    "email title"
+    "template",
+    "creator description image title"
   );
 
   if (!form) return next(new ResponseError("Form not found", 404));

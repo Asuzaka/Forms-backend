@@ -22,14 +22,13 @@ exports.signout = (req, res, next) => {
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
   // Getting token
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
+  if (req.headers.authorization?.startsWith("Bearer")) {
     token = req.headers.authorization.split(" ")[1];
-  } else if (req.cookies && req.cookies.jwt) {
-    token = req.cookies.jwt;
+  } else if (req.signedCookies?.jwt) {
+    // Changed to signedCookies
+    token = req.signedCookies.jwt;
   }
+
   if (!token) {
     return next(
       new ResponseError(
@@ -51,7 +50,14 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
   // Check is user changed password after the token was issued
-
+  if (user.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new ResponseError(
+        "User recently changed password! Please log in again",
+        401
+      )
+    );
+  }
   // Acces to protected route
   req.user = user;
   next();
@@ -304,7 +310,7 @@ exports.forgetPassword = catchAsync(async (req, res, next) => {
 
 function createTokenAndSend(user, res, options) {
   // Creating jwt Token
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
@@ -312,7 +318,7 @@ function createTokenAndSend(user, res, options) {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
     ),
-    // secure: true,
+    secure: true,
     httpOnly: true,
     sameSite: "None",
     signed: true,

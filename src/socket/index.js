@@ -50,7 +50,6 @@ function setupSocket(server) {
 
       next();
     } catch (err) {
-      console.error(`Auth failed: ${err.message}`);
       next(new Error("Authentication failed"));
     }
   });

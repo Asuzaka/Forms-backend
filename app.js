@@ -33,7 +33,7 @@ const limier = rateLimit({
 app.use(helmet());
 
 // Cookie Parser
-app.use(cookieParser());
+app.use(cookieParser(process.env.JWT_SECRET));
 // Body Parser
 app.use(express.json({ limit: "20kb" }));
 

@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
 const Template = require("../models/templateModel");
 const Form = require("../models/formModel");
+const Comment = require("../models/commentModel");
 const catchAsync = require("../services/CatchAsync");
 const ResponseError = require("../services/ResponseError");
 const apiFeatures = require("../services/ApiFeatures");
@@ -12,35 +13,31 @@ exports.globalSearch = catchAsync(async (req, res, next) => {
   const regex = new RegExp(q, "i");
 
   const templateQuery = Template.find({
-    $or: [{ title: regex }],
-  });
+    $or: [{ title: regex }, { tags: regex }],
+  }).select("title tags topic _id");
 
-  const tagsQuery = Template.find({
-    $or: [{ tags: regex }],
-  });
+  const commentQuery = Comment.find({ text: regex }).select("text _id");
 
   const templateFeatures = new apiFeatures(templateQuery, req.query)
     .sort()
-    .pagination()
-    .limitFields();
+    .pagination();
 
-  const tagsFeatures = new apiFeatures(tagsQuery, req.query)
+  const commentFeatures = new apiFeatures(commentQuery, req.query)
     .sort()
-    .pagination()
-    .limitFields();
+    .pagination();
 
-  const [templates, tags] = await Promise.all([
+  const [templates, comments] = await Promise.all([
     templateFeatures.query,
-    tagsFeatures.query,
+    commentFeatures.query,
   ]);
 
   res.status(200).json({
     status: "success",
     results: {
       templates: templates.length,
-      tags: tags.length,
+      comments: comments.length,
     },
-    data: { templates, tags },
+    data: { templates, comments },
   });
 });
 

@@ -5,7 +5,6 @@ const catchAsync = require("../services/CatchAsync");
 
 exports.submitForm = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  console.log(req.user.id);
   if (!id) return next(new ResponseError("No id was provided", 400));
   const { answers } = req.body;
   const template = await Template.findById(id);

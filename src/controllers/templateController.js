@@ -16,7 +16,6 @@ exports.createTemplate = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllTemplates = catchAsync(async (req, res, next) => {
-  console.log(req.query);
   const query = Template.find();
 
   const features = new apiFeatures(query, req.query)

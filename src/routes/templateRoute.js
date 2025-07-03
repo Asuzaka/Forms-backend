@@ -10,6 +10,19 @@ router.get("/popular/likes", templateController.getPopularByLikes);
 router.get("/tags", templateController.getTagStatistics);
 
 router
+  .route("/templates")
+  .post(
+    authController.protect,
+    authController.accesTo("admin"),
+    templateController.deleteMultipleTemplates
+  )
+  .get(
+    authController.protect,
+    authController.accesTo("admin"),
+    templateController.getAllTemplates
+  );
+
+router
   .route("/:id")
   .get(templateController.getTemplate)
   .patch(authController.protect, templateController.updateTemplate)
@@ -21,12 +34,5 @@ router
   .route("/")
   .get(templateController.getUserTemplates)
   .post(templateController.createTemplate);
-router
-  .route("/templates")
-  .post(
-    authController.accesTo("admin"),
-    templateController.deleteMultipleTemplates
-  )
-  .get(authController.accesTo("admin"), templateController.getAllTemplates);
 
 module.exports = router;

@@ -40,10 +40,9 @@ exports.getTemplateForms = catchAsync(async (req, res, next) => {
     return next(new ResponseError("Access denied", 403));
   }
 
-  const forms = await Form.find({ template: req.params.templateId }).populate(
-    "creator",
-    "email"
-  );
+  const forms = await Form.find({ template: req.params.templateId })
+    .populate("user", "photo name")
+    .select("createdAt title");
   res.status(200).json({ status: "success", data: forms });
 });
 

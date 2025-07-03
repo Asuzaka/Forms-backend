@@ -5,9 +5,15 @@ const catchAsync = require("../services/CatchAsync");
 
 exports.submitForm = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new ResponseError("Template not found", 404));
+  }
+
   if (!id) return next(new ResponseError("No id was provided", 400));
   const { answers } = req.body;
   const template = await Template.findById(id);
+
   if (!template) return next(new ResponseError("Template not found", 404));
 
   const isPublic = template.access === "public";
@@ -32,7 +38,14 @@ exports.submitForm = catchAsync(async (req, res, next) => {
 });
 
 exports.getTemplateForms = catchAsync(async (req, res, next) => {
+  const { templateId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(templateId)) {
+    return next(new ResponseError("Template not found", 404));
+  }
+
   const template = await Template.findById(req.params.templateId);
+
   if (!template) return next(new ResponseError("Template not found", 404));
 
   const isOwner = template.creator.toString() === req.user.id;
@@ -47,10 +60,17 @@ exports.getTemplateForms = catchAsync(async (req, res, next) => {
 });
 
 exports.getForm = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new ResponseError("Form not found", 404));
+  }
+
   const form = await Form.findById(req.params.id).populate(
     "template creator",
     "email title"
   );
+
   if (!form) return next(new ResponseError("Form not found", 404));
 
   const template = form.template;
@@ -65,7 +85,12 @@ exports.getForm = catchAsync(async (req, res, next) => {
 });
 
 exports.TemplateForForm = catchAsync(async (req, res, next) => {
-  const template = await Template.findById(req.params.id);
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new ResponseError("Form not found", 404));
+  }
+  const template = await Template.findById(id);
 
   if (!template) return next(new ResponseError("Form not found", 404));
 

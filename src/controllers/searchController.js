@@ -12,32 +12,44 @@ exports.globalSearch = catchAsync(async (req, res, next) => {
 
   const regex = new RegExp(q, "i");
 
-  const templateQuery = Template.find({
-    $or: [{ title: regex }, { tags: regex }],
-  }).select("title tags topic _id");
+  const templatesByTitle = await Template.find({ title: regex }).select(
+    "_id title"
+  );
 
-  const commentQuery = Comment.find({ text: regex }).select("text _id");
+  const templatesByTagsRaw = await Template.find({ tags: regex }).select(
+    "_id title tags"
+  );
 
-  const templateFeatures = new apiFeatures(templateQuery, req.query)
-    .sort()
-    .pagination();
+  const tagGroups = {};
+  for (const template of templatesByTagsRaw) {
+    const matchedTags = template.tags.filter((tag) => regex.test(tag));
+    for (const tag of matchedTags) {
+      if (!tagGroups[tag]) tagGroups[tag] = [];
+      tagGroups[tag].push({ _id: template._id, title: template.title });
+    }
+  }
 
-  const commentFeatures = new apiFeatures(commentQuery, req.query)
-    .sort()
-    .pagination();
+  const groupedTags = Object.entries(tagGroups).map(([tag, templates]) => ({
+    tag,
+    templates,
+  }));
 
-  const [templates, comments] = await Promise.all([
-    templateFeatures.query,
-    commentFeatures.query,
-  ]);
+  const comments = await Comment.find({ text: regex })
+    .select("text template")
+    .populate("template", "_id title");
+
+  const formattedComments = comments.map((c) => ({
+    text: c.text,
+    template: c.template?._id || null,
+  }));
 
   res.status(200).json({
     status: "success",
-    results: {
-      templates: templates.length,
-      comments: comments.length,
+    data: {
+      templates: templatesByTitle,
+      tags: groupedTags,
+      comments: formattedComments,
     },
-    data: { templates, comments },
   });
 });
 

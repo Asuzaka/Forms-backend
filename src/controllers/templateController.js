@@ -112,3 +112,51 @@ exports.deleteMultipleTemplates = catchAsync(async (req, res, next) => {
     message: `Deleted ${templates.length} templates`,
   });
 });
+
+exports.getLatestTemplates = catchAsync(async (req, res, next) => {
+  const templates = await Template.find()
+    .sort("-createdAt")
+    .limit(6)
+    .populate("creator", "name photo")
+    .select("creator description title image likes tags createdAt");
+
+  res.status(200).json({
+    status: "success",
+    results: templates.length,
+    data: templates,
+  });
+});
+
+exports.getPopularByLikes = catchAsync(async (req, res, next) => {
+  const templates = await Template.find()
+    .sort("-likesCount")
+    .limit(6)
+    .populate("creator", "name photo")
+    .select("creator description title image likes tags createdAt");
+
+  res.status(200).json({
+    status: "success",
+    results: templates.length,
+    data: templates,
+  });
+});
+
+exports.getTagStatistics = catchAsync(async (req, res, next) => {
+  const tagStats = await Template.aggregate([
+    { $unwind: "$tags" },
+    {
+      $group: {
+        _id: "$tags",
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { count: -1 } },
+    { $limit: 20 },
+  ]);
+
+  res.status(200).json({
+    status: "success",
+    results: tagStats.length,
+    data: tagStats,
+  });
+});

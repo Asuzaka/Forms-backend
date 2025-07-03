@@ -65,7 +65,9 @@ const templateSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+templateSchema.index({ likesCount: -1 });
 templateSchema.index({ title: 1 });
 templateSchema.index({ tags: 1 });
+templateSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Template", templateSchema);

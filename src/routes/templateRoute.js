@@ -5,6 +5,10 @@ const authController = require("../controllers/authController");
 
 const router = express.Router();
 
+router.get("/latest", templateController.getLatestTemplates);
+router.get("/popular/likes", templateController.getPopularByLikes);
+router.get("/tags", templateController.getTagStatistics);
+
 router.use(authController.protect);
 
 router

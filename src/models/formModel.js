@@ -34,5 +34,6 @@ const formSchema = new mongoose.Schema(
 );
 
 formSchema.index({ title: 1 });
+formSchema.index({ template: 1 });
 
 module.exports = mongoose.model("Form", formSchema);

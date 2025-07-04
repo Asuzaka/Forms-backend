@@ -124,7 +124,7 @@ exports.deleteMultipleTemplates = catchAsync(async (req, res, next) => {
 });
 
 exports.getLatestTemplates = catchAsync(async (req, res, next) => {
-  const templates = await Template.find()
+  const templates = await Template.find({ access: "public" })
     .sort("-createdAt")
     .limit(6)
     .populate("creator", "name photo")
@@ -138,7 +138,7 @@ exports.getLatestTemplates = catchAsync(async (req, res, next) => {
 });
 
 exports.getPopularByLikes = catchAsync(async (req, res, next) => {
-  const templates = await Template.find()
+  const templates = await Template.find({ access: "public" })
     .sort("-likesCount")
     .limit(6)
     .populate("creator", "name photo")

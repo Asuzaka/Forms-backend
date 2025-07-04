@@ -19,6 +19,33 @@ exports.signout = (req, res, next) => {
   res.status(200).json({ status: "success" });
 };
 
+exports.optionalAuth = catchAsync(async (req, res, next) => {
+  let token;
+
+  if (req.headers.authorization?.startsWith("Bearer")) {
+    token = req.headers.authorization.split(" ")[1];
+  } else if (req.signedCookies?.jwt) {
+    token = req.signedCookies.jwt;
+  }
+
+  if (!token) return next(); // No token → guest user
+
+  try {
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user || user.changedPasswordAfter(decoded.iat)) {
+      return next(); // Invalid user or password recently changed
+    }
+
+    req.user = user; // Authenticated user
+  } catch (err) {
+    // Invalid token → treat as guest
+  }
+
+  next();
+});
+
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
   // Getting token
@@ -58,6 +85,12 @@ exports.protect = catchAsync(async (req, res, next) => {
       )
     );
   }
+
+  // Check if user isn't blocked
+  if (user.status === "blocked") {
+    return next(new ResponseError("User is blocked", 401));
+  }
+
   // Acces to protected route
   req.user = user;
   next();

@@ -5,36 +5,13 @@ const authController = require("../controllers/authController");
 
 const router = express.Router();
 
-router.use(authController.protect);
+router.use(authController.protect, authController.accesTo("admin"));
 
-router
-  .route("/")
-  .get(authController.accesTo("admin"), userController.getAllUsers)
-  .post(userController.getUsers);
-router.post(
-  "/block",
-  authController.accesTo("admin"),
-  userController.blockUsers
-);
-router.post(
-  "/unblock",
-  authController.accesTo("admin"),
-  userController.unBlockUsers
-);
-router.post(
-  "/admin",
-  authController.accesTo("admin"),
-  userController.changeToAdmin
-);
-router.post(
-  "/user",
-  authController.accesTo("admin"),
-  userController.changeToUser
-);
-router.post(
-  "/delete",
-  authController.accesTo("admin"),
-  userController.deleteUsers
-);
+router.route("/").get(userController.getAllUsers).post(userController.getUsers);
+router.post("/block", userController.blockUsers);
+router.post("/unblock", userController.unBlockUsers);
+router.post("/admin", userController.changeToAdmin);
+router.post("/user", userController.changeToUser);
+router.post("/delete", userController.deleteUsers);
 
 module.exports = router;

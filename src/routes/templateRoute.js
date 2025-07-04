@@ -24,7 +24,7 @@ router
 
 router
   .route("/:id")
-  .get(templateController.getTemplate)
+  .get(authController.optionalAuth, templateController.getTemplate)
   .patch(authController.protect, templateController.updateTemplate)
   .delete(authController.protect, templateController.deleteTemplate);
 

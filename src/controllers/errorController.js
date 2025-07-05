@@ -15,7 +15,10 @@ module.exports = (err, req, res, next) => {
   if (error.code == 11000) {
     error = handleDuplicateErrorDB(error);
   }
-  if (error.name == "ValidationError") {
+  if (
+    error.name == "ValidationError" ||
+    error._message == "User validation failed"
+  ) {
     error = handleValidationErrorDB(error);
   }
   if (error.name == "JsonWebTokenError") {

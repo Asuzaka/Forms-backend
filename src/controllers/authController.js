@@ -110,7 +110,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   const userToken = user.createUserToken();
   await user.save({ validateBeforeSave: false });
   //  Send back an email
-  const verfiyUrl = `${process.env.FRONTEND_URL}/verify/${userToken}`;
+  const verfiyUrl = `${process.env.FROTEND_ADDRESS}/verify/${userToken}`;
   try {
     await sendEmail({
       email: user.email,
@@ -317,7 +317,7 @@ exports.forgetPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createResetToken();
   await user.save();
   // Send Mail
-  const resetUrl = `${process.env.FRONTEND_URL}/resetPassword/${resetToken}`;
+  const resetUrl = `${process.env.FROTEND_ADDRESS}/resetPassword/${resetToken}`;
   try {
     await sendEmail({
       email: user.email,
